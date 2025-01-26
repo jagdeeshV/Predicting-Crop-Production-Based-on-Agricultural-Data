@@ -41,7 +41,7 @@ go through and to run the project, follow these steps:
 1.	Install Python and required packages / libraries as given above
 2.	Download the Python Applications from my this Git hub repositary.
 5.	Launch the Application through Jupyter lab's Terminal (Windows Powershell) typing.  
-     **Python Jag_cropPredict_proj**
+     **Python Jag_Crop_proj.py**
 
 ### Features
 
