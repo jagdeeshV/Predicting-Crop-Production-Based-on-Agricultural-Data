@@ -1,8 +1,7 @@
-# Predicting-Crop-Production-Based-on-Agricultural-Data
-Python Project - Data Cleaning and Preprocessing, Exploratory Data Analysis (EDA), Data Visualization ,SQL, Streamlit, Machine Learning(Regression) Domain: Agriculture
 <h1 align="center">
 Predicting Crop Production Based on Agricultural Data
 </h1>
+[ Python Project - Data Cleaning and Preprocessing, Exploratory Data Analysis (EDA), Data Visualization ,SQL, Streamlit, Machine Learning(Regression) Domain: Agriculture ]
 
 ### Project Objective
 This project aims to develop a regression model that forecasts crop production (in tons) based on agricultural factors such as area harvested (in hectares), yield (in kg/ha), and the year, for various crops grown in a specific region using a FAOSTAT Dataset
