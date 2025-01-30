@@ -17,7 +17,7 @@ This project aims to develop a regression model that forecasts crop production (
      
   4. Model Performance - Metrics involving R2, MSE, MAE,etc. comparing different models.
 
-  5.	Predicting Production measured in tons through streamlit application and showcase the predicted value based on selected features.
+  5. Predicting Production measured in tons through streamlit application and showcase the predicted value based on selected features.
 
 
 ### Technologies used and Pre-requisites
@@ -32,11 +32,11 @@ All details and installation information are provided in the Prerquisite.PDF fil
 
 2.	**Streamlit:** Streamlit is an open-source Python framework designed to create and share web applications. It is specifically built for Python, making it easy for data scientists and machine learning engineers to deploy their models and visualize data without needing extensive knowledge of web development.
 	
-        A web-based user interface is developed using Streamlit for Sql queries & result display.
+        A web-based user interface is developed using Streamlit for Production Prediction.
 
 ### Executing the Application 
 
-go through and to run the project, follow these steps:
+To run the project, follow these steps:
 
 1.	Install Python and required packages / libraries as given above
 2.	Download the Python Applications from my this Git hub repositary.
@@ -46,10 +46,10 @@ go through and to run the project, follow these steps:
 ### Features
 
 The application offers the following features:
-+	Cleansing & storing (in MySql) the given dataset/s.
-+	Merging Datasets as FinalMerged and storing it in MySql for Power BI visualization and query analysis.
-+	Data analysis and visualization through charts and graphs using Power BI.
-+	Analysis of details from SQL database using SQL queries for a ten different pre-defined search options.
++	Cleansing and preprocessing the given dataset.
++	Merging Dataset as required for Random forest machine learning.
++	EDA and visualization through charts and graphs.
++	Production Prediction for the user input Area / Crop / Arrea harvested and yield 
 
 ### References
 
