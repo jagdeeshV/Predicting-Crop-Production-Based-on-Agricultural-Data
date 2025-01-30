@@ -3,19 +3,24 @@
 
 # Step 1: Understanding the Data
 # Step 2: Pre-Processing / Cleaning Data 
-#         A. Duplicates, B. Missing Data, C. Data type conversion, D. Outliers
+#          A. Duplicates, B. Missing Data, C. Data type conversion, D. Outliers
 # Step 3: Plot Chart
-# Step 4: Transforming Data
-# Step 5: Training ML
-# Step 6: Prediction
-# Step 7: EDA Report
-
+# Step 4: Streamlit Application
+#          A. Merging Data & re-treating Outliers
+#          B. Transforming Data
+#          C. ML - Training data. Random Forest Regressor
+#          D. 
+# Step 5: Getting user inputs & Prediction
+# Step 6: EDA Report
+##### ----------------------------------------------------------------------------------- #####
+# 0. Importing required Libraries
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from rich.console import Console
 from rich.text import Text
+import os
 
 console = Console()
 plt.style.use("ggplot")
@@ -325,55 +330,61 @@ relevant_df.to_csv('D:\Guvi\Crop Proj\FAOSTAT_data\FAOSTAT_Cleaned1.csv', index=
 ##### ------------------------------------------------------------------------------------------------------  #####
 #### Linear Regression
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.ensemble import RandomForestRegressor
+##import pandas as pd
+##from sklearn.model_selection import train_test_split
+##from sklearn.linear_model import LinearRegression
+##from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+##from sklearn.ensemble import RandomForestRegressor
+##
+##X = relevant_df[['Area', 'Item','Element', 'Year']]  # Independent variables
+##y = relevant_df['Value']  # Dependent variable
+##
+##X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+##
+##linear_model = LinearRegression()
+##linear_model.fit(X_train, y_train)
+##
+##y_pred = linear_model.predict(X_test)
+##
+##mse = mean_squared_error(y_test, y_pred)
+##mae = mean_absolute_error(y_test, y_pred)
+##r2 = r2_score(y_test, y_pred)
+##
+##print(f"{BOLD}{NAVYBLUE}\nB. Linear Regression Model Evaluation\n{RESET}")
+##print(f"Mean Squared Error (MSE): {mse}")
+##print(f"Mean Absolute Error (MAE): {mae}")
+##print(f"R-squared Score (R2): {r2} \n")
+##
+###### Random, Forest Regression
+##X = relevant_df[['Area', 'Item', 'Element', 'Year']]
+##y = relevant_df['Value']
+##
+##X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) 
+##
+##rf_model = RandomForestRegressor(n_estimators=100, random_state=42) 
+##rf_model.fit(X_train, y_train) 
+##
+##y_pred = rf_model.predict(X_test) 
+##
+##print(f"{BOLD}{NAVYBLUE}C. Random Forest Regression Model Evaluation\n{RESET}")
+##print("MSE", mean_squared_error(y_test, y_pred))
+##print("R2 Score:", r2_score(y_test, y_pred))
+##
+###### Gradient Boosting Regression
+##from sklearn.ensemble import GradientBoostingRegressor
+##
+##gb_model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+##
+##gb_model.fit(X_train, y_train) 
+##
+##y_pred = gb_model.predict(X_test) 
+##
+##print(f"{BOLD}{NAVYBLUE}\nD. Gradient Boosting Regression Model Evaluation\n{RESET}")
+##print("MSE:", mean_squared_error(y_test, y_pred))
+##print("R2 Score:", r2_score(y_test, y_pred))
 
-X = relevant_df[['Area', 'Item','Element', 'Year']]  # Independent variables
-y = relevant_df['Value']  # Dependent variable
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-linear_model = LinearRegression()
-linear_model.fit(X_train, y_train)
-
-y_pred = linear_model.predict(X_test)
-
-mse = mean_squared_error(y_test, y_pred)
-mae = mean_absolute_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
-
-print(f"{BOLD}{NAVYBLUE}\nB. Linear Regression Model Evaluation\n{RESET}")
-print(f"Mean Squared Error (MSE): {mse}")
-print(f"Mean Absolute Error (MAE): {mae}")
-print(f"R-squared Score (R2): {r2} \n")
-
-#### Random, Forest Regression
-X = relevant_df[['Area', 'Item', 'Element', 'Year']]
-y = relevant_df['Value']
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) 
-
-rf_model = RandomForestRegressor(n_estimators=100, random_state=42) 
-rf_model.fit(X_train, y_train) 
-
-y_pred = rf_model.predict(X_test) 
-
-print(f"{BOLD}{NAVYBLUE}C. Random Forest Regression Model Evaluation\n{RESET}")
-print("MSE", mean_squared_error(y_test, y_pred))
-print("R2 Score:", r2_score(y_test, y_pred))
-
-#### Gradient Boosting Regression
-from sklearn.ensemble import GradientBoostingRegressor
-
-gb_model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
-
-gb_model.fit(X_train, y_train) 
-
-y_pred = gb_model.predict(X_test) 
-
-print(f"{BOLD}{NAVYBLUE}\nD. Gradient Boosting Regression Model Evaluation\n{RESET}")
-print("MSE:", mean_squared_error(y_test, y_pred))
-print("R2 Score:", r2_score(y_test, y_pred))
+console.print("[purple]4. Prediction\n", justify='center')
+console.print(" \n", justify='center')
+input("Press ENTER key")
+os.system('streamlit run Jag_Crop_proj_Predict_app.py "D:\Guvi\Crop Proj\FAOSTAT_data\FAOSTAT_Cleaned_Req.csv"')
+print('')
