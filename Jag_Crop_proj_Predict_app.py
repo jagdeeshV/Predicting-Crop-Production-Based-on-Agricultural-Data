@@ -1,3 +1,5 @@
+# Streamlit application for Crop Production Prediction
+# 0. Required packages importing
 import pandas as pd
 import streamlit as st
 import numpy as np
@@ -9,8 +11,17 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 import plotly.express as px
 import plotly.graph_objects as go
+#from datetime import datetime
+import time
+import keyboard
+import os
+import psutil
+import sys
+## ---------------------------------------------------------------------------------------------- ##
 
-class CropProductionPredictor:
+# 1. The Merging, Outliers, feature transformation, Training, etc functions called by Main Streamlit routin
+class CropProductionClass:
+# 1A. Class variable initialization 
     def __init__(self):
         self.num_area = LabelEncoder()
         self.num_item = LabelEncoder()
@@ -44,12 +55,13 @@ class CropProductionPredictor:
             ))
         ])
 
+# 1B. Merging  & treating outliers rows based on Element (Area harvested, Production & yield
     def Merge_Element_data(self, csv_file):
+    # 1Ba. Merging  & treating outliers rows based on Element (Area harvested, Production & yield
         try:
-            print ('In Merge Data')
             df = pd.read_csv(csv_file)
             # cols are 'Area', 'Item', 'Element', 'Year', 'Value'
-            # Make values of Areea_harvested, Yield & Production in single rows for easy and better analysis & prediction 
+            # Make values of Area_harvested, Yield & Production in single rows for easy and better analysis & prediction 
             # Create dataframes for each element
             area_harvested_df = df[df['Element'] == 'Area harvested'].copy()
             yield_df = df[df['Element'] == 'Yield'].copy()
@@ -70,9 +82,8 @@ class CropProductionPredictor:
                 how='inner'
             )
             
-            # Removing outliers using IQR method
+    # 1Bb. Removing outliers using IQR method
             def remove_outliers(df, column):
-                print ('In Outliers')
                 Q1 = df[column].quantile(0.25)
                 Q3 = df[column].quantile(0.75)
                 IQR = Q3 - Q1
@@ -98,9 +109,9 @@ class CropProductionPredictor:
             
         except Exception as e:
             st.error(f"Error in data loading and cleaning: {str(e)}")
-            print(f"Error details: {str(e)}")
             return None
     
+# 1C. Preparing fatures (Categorical columns to Numeric transformation)
     def prepare_features(self, df):
         try:
             if df is None or df.empty:
@@ -118,11 +129,11 @@ class CropProductionPredictor:
             
         except Exception as e:
             st.error(f"Error in feature preparation: {str(e)}")
-            print(f"Error details: {str(e)}")
+            print(f"Error in feature preparation: {str(e)}")
             return None, None
     
+# 1D. Training Model, Prediction and calculating R2, MSE, MAE & CV score metrics 
     def train_model(self, x, y):
-        print ('In Train model')
         try:
             if x is None or y is None:
                 raise ValueError("Features or target is None")
@@ -135,10 +146,10 @@ class CropProductionPredictor:
             # Train model
             self.model.fit(x_train, y_train)
             
-            # Make predictions
+            # Prediction log
             y_pred_log = self.model.predict(x_test)
             
-            # Transform predictions back to original scale
+            # Transform predictions to original scale
             y_pred = np.expm1(y_pred_log)
             y_test_original = np.expm1(y_test)
             
@@ -158,32 +169,48 @@ class CropProductionPredictor:
             
         except Exception as e:
             st.error(f"Error in model training: {str(e)}")
-            print(f"Error details: {str(e)}")
+            print(f"Error in model training: {str(e)}")
             return None
-    
-    def main_ui(self):
+## ---------------------------------------------------------------------------------------------- ##
+
+# 2. Main Streamklit routine Accepting user inputs, calling functions & Predicting
+    def main_ui(self, csv_file):
         try:
             st.title('Crop Production - Prediction')
-            print('--------------------------------------------------------------------------------------\n')
-            if 'cnt' not in st.session_state:
-                st.session_state.cnt = 0
-
-            csv_file = st.file_uploader("Upload FAOSTAT Preprocessed CSV file", type=['csv'])
+            st.write(f"\nCleaned Data set Loaded : {csv_file}")
+            temp_msg = st.empty()
+            temp_msg.text("\n Wait. Merging, preparing features and training the dataset")
+# 2A. Accepting the Cleaned data set
+            #csv_file = st.file_uploader("Upload Cleaned FAOSTAT  CSV file", type=['csv'])
             
+            if 'one_time' not in st.session_state:
+                st.session_state.one_time = 0
+            if 'first_time' not in st.session_state:
+                st.session_state.first_time = 0
+
             if csv_file is not None:
+# 2B. Mergin based on element
                 df = self.Merge_Element_data(csv_file)
+                #print(f" Merge {datetime.now().time()}")
+                temp_msg.text("\n Wait. Merging, preparing features and training the dataset ...")
 
                 if df is not None and not df.empty:
-                    if st.session_state.cnt == 0:
-                        st.session_state.cnt = 1
-                        x, y = self.prepare_features(df)
-                        if x is not None and y is not None:
+# 2C. Categorical to Numric transformation
+                    x, y = self.prepare_features(df)
+                    temp_msg.text("\n Wait. Merging, preparing features and training the dataset ......")
+                    
+                    if x is not None and y is not None:
+# 2D. First time Model training inpuuting CSV file, mergin,  & transforming
+#        subsequently executed on click of Predict button [after user inputs ] to avoid processing time on each and every input
+                        if st.session_state.one_time == 0:
+                            st.session_state.one_time = 1
                             metrics = self.train_model(x, y)
+                            temp_msg.text("\n Wait. Merging, preparing features and training the dataset .........")
                             
                             if metrics is not None:
                                 html_code = """
                                 <div style="text-align: center; font-size: 24px;">
-                                 Model Performance of entire dataset
+                                 Model Performance
                                 </div>
                                 """
                                 st.markdown(html_code, unsafe_allow_html=True)
@@ -196,138 +223,197 @@ class CropProductionPredictor:
                                 with col3:
                                     st.metric("Mean Absolute Error", f"{metrics['MAE']:.2f}")
 
-                    # Input parameters for prediction
-                    st.sidebar.header('Input Parameters')
-
-                    selected_area = st.sidebar.selectbox('Select Area', df['Area'].unique())
-                    filtered_df = df[df['Area'] == selected_area]
-                    selected_item = st.sidebar.selectbox('Select Crop', filtered_df['Item'].unique())
-
-                    # Getting median values from similar crops/areas for Area Harvested & Yield as default
-                    default_area = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]['Area_harvested'].median()
-                    default_yield = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]['Yield'].median()
-                    area_harvested = st.sidebar.number_input('Area_harvested (ha)', min_value=0.0, value=float(default_area))
-                    yield_value = st.sidebar.number_input('Yield (kg/ha)', min_value=0.0, value=float(default_yield))
-
-                    future_predict = st.sidebar.checkbox('Future Predictions (2024-2030)')
-                    min_yr = df['Year'].min()
-                    max_yr = df['Year'].max()
-                    future_yr = round(max_yr, -1)
-                    if future_predict:
+# 2Db. Input parameters for prediction
+                        st.markdown(
+                            """
+                            <style>
+                            .css-1d391kg {  # This class name might change with Streamlit updates
+                                width: 300px; 
+                            }
+                            </style>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        st.sidebar.header('Input Parameters')
+                        temp_msg.empty()
+                        st.markdown("""
+                            <style>
+                            .stSelectbox label {
+                                display: inline-block;
+                                margin-right: 9px;
+                            }
+                            .stSelectbox div[data-baseweb="select"] {
+                                display: inline-block;
+                                width: auto;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+                        selected_area = st.sidebar.selectbox('Area', self.num_area.classes_)
+                        st.markdown("""
+                            <style>
+                            .stSelectbox label {
+                                display: inline-block;
+                                margin-right: 9px;
+                            }
+                            .stSelectbox div[data-baseweb="select"] {
+                                display: inline-block;
+                                width: auto;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+#                        selected_item = st.sidebar.selectbox('Crop', self.num_item.classes_)
+                        selected_item = st.sidebar.selectbox('Crop', df[df['Area'] == selected_area]['Item'])
+                        min_yr = df['Year'].min()
+                        max_yr = df['Year'].max()
+                        future_yr = round(max_yr, -1)
+                        future_predict = st.sidebar.checkbox('Predict Future(2024-2030)? ')
                         if future_yr <= max_yr:
-                            future_yr = future_yr+ 10
-                    selected_year = st.sidebar.slider('Select Year', min_yr, future_yr, max_yr)
-
-                    print(f"1. Area {selected_area}")
-                    print(f"1. Item {selected_item}")
-                    print(f"1. Year {selected_year}")
-                    print(f"1. Harvested {area_harvested}")
-                    print(f"1. Yield {yield_value}")
-                    print(f"1. Future predict {future_predict}\n")
-
-                    df_area_item = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]
-                    df_area_item.to_csv('D:\Guvi\Crop Proj\FAOSTAT_data\check.csv', index=False)
-                    df_area = df[df['Area'] == selected_area]
-
-                    x, y = self.prepare_features(df_area_item)
-                    print(x)
-                    if x is not None and y is not None:
-                        metrics = self.train_model(x, y)
+                            if future_predict:
+                                future_yr = future_yr+ 10
+                            else:
+                                future_yr = max_yr
+                        selected_year = st.sidebar.slider('Select Year', min_yr, future_yr, max_yr)
+                    # Use median values from similar crops/areas as default
+                        md = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]
+                        md.to_csv('D:\Guvi\Crop Proj\FAOSTAT_data\check.csv', index=False)
+                        default_area = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]['Area_harvested'].median()
+                        # default_area = df[df['Item'] == selected_item]['Area_harvested'].median()
+                        default_yield = df[df['Item'] == selected_item]['Yield'].median()
                         
-                        if metrics is not None:
-                            if st.sidebar.button('Predict'):
-                                print('\nPredict Pressed')
-                                input_data = pd.DataFrame([[
-                                    self.num_area.transform([selected_area])[0],
-                                    self.num_item.transform([selected_item])[0],
-                                    selected_year,
-                                    area_harvested,
-                                    yield_value
-                                ]], columns=self.encoded_names)
-                                
-                                print(f"2. Area {selected_area}")
-                                print(f"2. Item {selected_item}")
-                                print(f"2. Year {selected_year}")
-                                print(f"2. Harvested {area_harvested}")
-                                print(f"2. Yield {yield_value}")
-                                print(f"2. Future predict {future_predict}\n")
-                                # Make prediction (will be log-transformed)
-                                prediction_log = self.model.predict(input_data)
-                                prediction = np.expm1(prediction_log)[0]
-                                html_code = """
-                                <div style="text-align: center; font-size: 24px;">
-                                 Predicted Production
-                                </div>
-                                """
-                                st.markdown(html_code, unsafe_allow_html=True)
-                                st.metric("Production", f"{prediction:.2f} tonnes")
-############                                
-                                # Feature importance
-                                if hasattr(self.model['regressor'], 'feature_importances_'):
-                                    print('\nhasattr in')
+                        area_harvested = st.sidebar.number_input('Area_harvested (ha)', 
+                                                               min_value=0.0, 
+                                                               value=float(default_area))
+                        yield_value = st.sidebar.number_input('Yield (kg/ha)', 
+                                                            min_value=0.0,
+                                                            value=float(default_yield))
+
+                        if st.sidebar.button('Predict'):
+# 2E. Prediction based on inputs
+                            if st.session_state.one_time == 1:
+# 2E1 Subsequent times Model training o clicking predct button to avoid processing time on each and every input
+                               metrics = self.train_model(x, y)
+
+                               if metrics is not None:
                                     html_code = """
                                     <div style="text-align: center; font-size: 24px;">
-                                     Feature Importance
+                                     Model Performance
                                     </div>
                                     """
                                     st.markdown(html_code, unsafe_allow_html=True)
-                                    importance_df = pd.DataFrame({
-                                        'Feature': ['Area', 'Crop Type', 'Year', 'Area Harvested', 'Yield'],
-                                        'Importance': self.model['regressor'].feature_importances_
-                                    })
-                                    fig = px.bar(importance_df, x='Feature', y='Importance',
-                                               title='Feature Importance Analysis')
-                                    st.plotly_chart(fig)
-
-                                # Show future predictions
-                                if future_predict:
-                                    if selected_year <= max_yr:
-                                        st.info('Year not selected and assumed 2030')
-                                        selected_year = future_yr
-                                    print(f"3. Year {selected_year}")
-                                    future_years = range(max_yr+1, selected_year+1)
-                                    print(f"Future yr {future_years}")
-                                    future_predictions = []
+                                    col1, col2, col3 = st.columns(3)
                                     
-                                    for year in future_years:
-                                        print(f"Prcs yr {year}")
-                                        future_input = input_data.copy()
-                                        future_input['Year'] = year
-                                        future_pred_log = self.model.predict(future_input)
-                                        future_pred = np.expm1(future_pred_log)[0]
-                                        future_predictions.append(future_pred)
-                                    
-                                    future_df = pd.DataFrame({
-                                        'Year': future_years,
-                                        'Predicted Production': future_predictions
-                                    })
-                                    print(f"Future df {future_df}")
-                                    fig = px.line(future_df, x='Year', y='Predicted Production',
-                                                title=f'Future Production Predictions for {selected_item} in {selected_area}')
-                                    st.plotly_chart(fig)
-
-                            # Data distribution plots
+                                    with col1:
+                                        st.metric("R² Score", f"{metrics['R2']:.3f}")
+                                    with col2:
+                                        st.metric("Root Mean Sq. Error", f"{metrics['RMSE']:.2f}")
+                                    with col3:
+                                        st.metric("Mean Absolute Error", f"{metrics['MAE']:.2f}")
+                               
+                            input_data = pd.DataFrame([[
+                                self.num_area.transform([selected_area])[0],
+                                self.num_item.transform([selected_item])[0],
+                                selected_year,
+                                area_harvested,
+                                yield_value
+                            ]], columns=self.encoded_names)
+                        
+# 2E1 Subsequent times Model training o clicking predct button to avoid processing time on each and every input
+                            # Make prediction (will be log-transformed)
+                            prediction_log = self.model.predict(input_data)
+                            prediction = np.expm1(prediction_log)[0]
                             html_code = """
                             <div style="text-align: center; font-size: 24px;">
-                             Data Analysis
+                             Predicted Production
                             </div>
                             """
                             st.markdown(html_code, unsafe_allow_html=True)
-                            fig = px.box(df_area, x='Item', y='Production',
-                                       title='Production Distribution by Crop')
-                            st.plotly_chart(fig)
-                            
-                            fig = px.scatter(df_area, x='Area_harvested', y='Production',
-                                           color='Item', title='Area vs Production')
-                            st.plotly_chart(fig)
+                            st.metric("Production", f"{prediction:.2f} tonnes")
+# 2E2 Feature importance
+                            if hasattr(self.model['regressor'], 'feature_importances_'):
+                                html_code = """
+                                <div style="text-align: center; font-size: 24px;">
+                                 Feature Importance
+                                </div>
+                                """
+                                st.markdown(html_code, unsafe_allow_html=True)
+                                importance_df = pd.DataFrame({
+                                    'Feature': ['Area', 'Crop Type', 'Year', 'Area Harvested', 'Yield'],
+                                    'Importance': self.model['regressor'].feature_importances_
+                                })
+                                fig = px.bar(importance_df, x='Feature', y='Importance',
+                                           title='Feature Importance Analysis')
+                                st.plotly_chart(fig)
+# 2Ec Future predictions
+                            if future_predict:
+                                if selected_year <= max_yr:
+                                    st.info('Year not selected and assumed 2030')
+                                    selected_year = future_yr
+                                future_years = range(max_yr+1, selected_year+1)
+                                future_predictions = []
+                                
+                                for year in future_years:
+                                    future_input = input_data.copy()
+                                    future_input['Year'] = year
+                                    future_pred_log = self.model.predict(future_input)
+                                    future_pred = np.expm1(future_pred_log)[0]
+                                    future_predictions.append(future_pred)
+                                
+                                future_df = pd.DataFrame({
+                                    'Year': future_years,
+                                    'Predicted Production': future_predictions
+                                })
+                                fig = px.line(future_df, x='Year', y='Predicted Production',
+                                            title=f'Future Production Predictions for {selected_item} in {selected_area}')
+                                st.plotly_chart(fig)
+
+                        if st.sidebar.button('Exit'):
+                            st.markdown ("### Thank You for using the App")
+                            time.sleep(3)
+                            # Close streamlit browser tab
+                            keyboard.press_and_release('ctrl+w')
+                            # Terminate streamlit python process
+                            pid = os.getpid()
+                            p = psutil.Process(pid)
+                            p.terminate()
+
+# 2Ed Data distribution plots
+                        if st.session_state.first_time == 0:
+                            st.session_state.first_time = 1
+                            chart_df = df
+                            html_code = """
+                            <div style="text-align: center; font-size: 24px;">
+                             Data Analysis for all Area and Crops in Dataset
+                            </div>
+                            """
+                            st.markdown(html_code, unsafe_allow_html=True)
+                        else:
+                            chart_df = df[df['Area'] == selected_area]
+                            html_code = """
+                            <div style="text-align: center; font-size: 24px;">
+                             Data Analysis for selected Area
+                            </div>
+                            """
+                            st.markdown(html_code, unsafe_allow_html=True)
+                        fig = px.box(chart_df, x='Item', y='Production',
+                                   title='Production Distribution by Crop')
+                        st.plotly_chart(fig)
+                        
+                        fig = px.scatter(chart_df, x='Area_harvested', y='Production',
+                                       color='Item', title='Area vs Production')
+                        st.plotly_chart(fig)
 
         except Exception as e:
             st.error(f"Error in Streamlit app: {str(e)}")
-            print(f"Error details: {str(e)}")
+            print(f"Error in Streamlit app:  {str(e)}")
+## ---------------------------------------------------------------------------------------------- ##
 
-def main():
-    predictor = CropProductionPredictor()
-    predictor.main_ui()
+def main(csv_file):
+# Invoking the execution
+    Task_run = CropProductionClass()
+    Task_run.main_ui(csv_file)
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        print('Pass Preprocessed CSV file as parameter to run')
