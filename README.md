@@ -26,7 +26,6 @@ This project aims to develop a regression model that forecasts crop production (
 
 ### Technologies used and Pre-requisites
 
-All details and installation information are provided in the Prerquisite.PDF file.
 
 1.	**Python:** The programming language used for building the application and scripting tasks.
 
