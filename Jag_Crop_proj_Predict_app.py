@@ -11,13 +11,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 import plotly.express as px
 import plotly.graph_objects as go
-#from datetime import datetime
 import time
 import keyboard
 import os
 import psutil
 import sys
-## ---------------------------------------------------------------------------------------------- ##
+## --------------------------------------------------------------------------------------------------------------------------------------- ##
 
 # 1. The Merging, Outliers, feature transformation, Training, etc functions called by Main Streamlit routin
 class CropProductionClass:
@@ -171,7 +170,7 @@ class CropProductionClass:
             st.error(f"Error in model training: {str(e)}")
             print(f"Error in model training: {str(e)}")
             return None
-## ---------------------------------------------------------------------------------------------- ##
+##### --------------------------------------------------------------------------------------------------------------------------------------- #####
 
 # 2. Main Streamklit routine Accepting user inputs, calling functions & Predicting
     def main_ui(self, csv_file):
@@ -223,6 +222,7 @@ class CropProductionClass:
                                 with col3:
                                     st.metric("Mean Absolute Error", f"{metrics['MAE']:.2f}")
 
+                        df.to_csv('D:\Guvi\Crop Proj\FAOSTAT_data\Final FAOSTAT_Processed.csv', index=False)
 # 2Db. Input parameters for prediction
                         st.markdown(
                             """
@@ -262,7 +262,7 @@ class CropProductionClass:
                             </style>
                             """, unsafe_allow_html=True)
 #                        selected_item = st.sidebar.selectbox('Crop', self.num_item.classes_)
-                        selected_item = st.sidebar.selectbox('Crop', df[df['Area'] == selected_area]['Item'])
+                        selected_item = st.sidebar.selectbox('Crop', df[df['Area'] == selected_area]['Item'].unique())
                         min_yr = df['Year'].min()
                         max_yr = df['Year'].max()
                         future_yr = round(max_yr, -1)
@@ -274,12 +274,9 @@ class CropProductionClass:
                                 future_yr = max_yr
                         selected_year = st.sidebar.slider('Select Year', min_yr, future_yr, max_yr)
                     # Use median values from similar crops/areas as default
-                        md = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]
-                        md.to_csv('D:\Guvi\Crop Proj\FAOSTAT_data\check.csv', index=False)
                         default_area = df[(df['Item'] == selected_item) & (df['Area'] == selected_area)]['Area_harvested'].median()
                         # default_area = df[df['Item'] == selected_item]['Area_harvested'].median()
                         default_yield = df[df['Item'] == selected_item]['Yield'].median()
-                        
                         area_harvested = st.sidebar.number_input('Area_harvested (ha)', 
                                                                min_value=0.0, 
                                                                value=float(default_area))
@@ -377,9 +374,12 @@ class CropProductionClass:
                             p.terminate()
 
 # 2Ed Data distribution plots
+                        # 2Edα Heading Display based on first time or subsequent
                         if st.session_state.first_time == 0:
                             st.session_state.first_time = 1
-                            chart_df = df
+                            area_df = df
+                            item_df = df
+                            bar_title = 'All Crops'
                             html_code = """
                             <div style="text-align: center; font-size: 24px;">
                              Data Analysis for all Area and Crops in Dataset
@@ -387,25 +387,45 @@ class CropProductionClass:
                             """
                             st.markdown(html_code, unsafe_allow_html=True)
                         else:
-                            chart_df = df[df['Area'] == selected_area]
+                            area_df = df[df['Area'] == selected_area]
+                            item_df = df[df['Item'] == selected_item]
+                            bar_title = selected_item
                             html_code = """
                             <div style="text-align: center; font-size: 24px;">
-                             Data Analysis for selected Area
+                             Data Analysis for Area / Item Selected
                             </div>
                             """
-                            st.markdown(html_code, unsafe_allow_html=True)
-                        fig = px.box(chart_df, x='Item', y='Production',
+                        # 2Edβ Top 15 Area production for the selected crop
+                        df1 = item_df.groupby('Area', as_index=False)['Production'].sum()
+                        top_15 = df1.sort_values(by='Production', ascending=False).head(15)
+                        html_code = """
+                        <div style="text-align: center; font-size: 24px;">
+                         Top 15 Areas of Production
+                        </div>
+                        """
+                        st.markdown(html_code, unsafe_allow_html=True)
+                        fig = px.bar(top_15, x='Area', y='Production',
+                                   title=bar_title)
+                        st.plotly_chart(fig)
+
+                        # 2Edγ Production distribution by Crop for selected Area
+                        st.markdown(html_code, unsafe_allow_html=True)
+                        if bar_title != 'All Crops':
+                            st.write(f'for Area {selected_area}')
+                            st.write('')
+                        fig = px.box(area_df, x='Item', y='Production',
                                    title='Production Distribution by Crop')
                         st.plotly_chart(fig)
                         
-                        fig = px.scatter(chart_df, x='Area_harvested', y='Production',
+                        # 2Edδ Area Harvested vs Production
+                        fig = px.scatter(area_df, x='Area_harvested', y='Production',
                                        color='Item', title='Area vs Production')
                         st.plotly_chart(fig)
 
         except Exception as e:
             st.error(f"Error in Streamlit app: {str(e)}")
             print(f"Error in Streamlit app:  {str(e)}")
-## ---------------------------------------------------------------------------------------------- ##
+## --------------------------------------------------------------------------------------------------------------------------------------- ##
 
 def main(csv_file):
 # Invoking the execution
