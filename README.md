@@ -15,7 +15,7 @@ This project aims to develop a regression model that forecasts crop production (
     	
     	• Consolidating rows by merging and creating values as columns based on column element (Area harvested, Production & Yield)
     	
-    	• Understaing outliers and suitably act upon them. 
+    	• Understanding outliers and suitably act upon them. 
     	
   3. Perform Exploratory Data Analysis (EDA) to uncover trends, crop distribution and insights and represent them visually using graphs and plots
      
