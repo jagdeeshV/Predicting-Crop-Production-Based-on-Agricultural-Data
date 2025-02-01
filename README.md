@@ -8,7 +8,8 @@ This project aims to develop a regression model that forecasts crop production (
 
 ### Approach
   1.	Cleansing  and pre-processing the dataset received by .
-      • suitably handling the null, missing values, etc and standardizing column metrics.
+
+    	• suitably handling the null, missing values, etc and standardizing column metrics.
     	• Filter relevant columns for analysis data.
     	• Consolidating rows by merging and creating values as columns based on column element (Area harvested, Production & Yield)
     	• Understaing outliers and suitably act upon them. 
