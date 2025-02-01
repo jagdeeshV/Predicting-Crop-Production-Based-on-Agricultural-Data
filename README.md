@@ -7,7 +7,7 @@ Predicting Crop Production Based on Agricultural Data
 This project aims to develop a regression model that forecasts crop production (in tons) based on agricultural factors such as area harvested (in hectares), yield (in kg/ha), and the year, for various crops grown in a specific region using a FAOSTAT Dataset
 
 ### Approach
-  1.	* Cleansing  and pre-processing the dataset received by .
+  1.	**Cleansing  and pre-processing** the dataset received by
 
     	• suitably handling the null, missing values, etc and standardizing column metrics.
     	  	
@@ -17,11 +17,11 @@ This project aims to develop a regression model that forecasts crop production (
     	
     	• Understanding outliers and suitably act upon them. 
     	
-  3. Perform Exploratory Data Analysis (EDA) to uncover trends, crop distribution and insights and represent them visually using graphs and plots
+  2. **Perform Exploratory Data Analysis (EDA)** to uncover trends, crop distribution and insights and represent them visually using graphs and plots
      
-  4. Model Performance - Metrics involving R2, MSE, MAE,etc. comparing different models.
+  4. **Model Performance** - Metrics involving R2, MSE, MAE, etc. comparing different models.
 
-  5. Predicting Production measured in tons through streamlit application and showcase the predicted value based on selected features.
+  5. **Predicting Production** measured in tons merging data based on element and using Random forest regression through a streamlit application and showcasing the predicted value based on user selected feature inputs.
 
 
 ### Technologies used and Pre-requisites
